@@ -1,0 +1,37 @@
+Current Options
+
+Year Selection
+2022-2025 (can be looped on each value)  --Main loop
+
+Once the year is selected, each year and its own type of vehicles
+
+then we loop through those vehicle type inputs
+
+Once the year is selected and the type is selected then each type has its own set of vehicles
+
+then we loop through those vehicles themselves
+
+so initial shape would be
+
+[
+    {
+        year: '2022',
+        vehicle_type: 'abc',
+        vehicle_modal: 'the vehicle itself i.e F-750 Gas
+    }
+]
+
+next phase would be to click on those vehicles and it would load a trim Section
+
+now there would be multiple dropdowns here every value from each dropdown must be appended inside that vehicle object i.each
+[
+    {
+        year: '2022',
+        vehicle_type: 'abc',
+        vehicle_modal: 'F-750 Gas'
+        trim: {
+            cab_style?: ['Crew cab', 'regular cab']
+            ....
+        }
+    }
+]

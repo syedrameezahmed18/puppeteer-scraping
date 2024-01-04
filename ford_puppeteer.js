@@ -6,6 +6,21 @@ console.log(process.env.DUMMY_API_KEY);
 
 const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
 
+async function highlightElement(page, selector) {
+  await page.evaluate((selector) => {
+    const element = document.querySelector(selector);
+
+    if (element) {
+      //   const originalBackgroundColor = element.style.backgroundColor;
+      element.style.border = "3px solid maroon";
+
+      //   setTimeout(() => {
+      //     element.style.backgroundColor = originalBackgroundColor;
+      //   }, 1000); // Adjust the timeout as needed
+    }
+  }, selector);
+}
+
 async function main() {
   //   const width = 1024,
   //      height = 600;
@@ -52,31 +67,20 @@ async function main() {
 
   await page.waitForNavigation({ waitUntil: "domcontentloaded" });
 
-  try {
-    await page.waitForSelector("#controls");
-    console.log("Button found, clicking...");
-    await page.waitForTimeout(2000); // Adjust the timeout value as needed
-    await page.click('#controls button[action="agree"]:first-child');
+  await page.waitForTimeout(2000); // Adjust the timeout value as needed
 
-    // await page.waitForSelector('button[action="agree"]');
-  } catch (error) {
-    console.log("here error", error);
-  }
+  await page.waitForSelector("#controls");
+
+  await page.click('#controls button[action="agree"]:first-child');
 
   await page.waitForNavigation({ waitUntil: "domcontentloaded" });
 
-  try {
-    await page.waitForSelector("#system-broadcast-notification-dialog");
-    await page.waitForSelector(".pull-right");
-    await page.waitForTimeout(2000); // Adjust the timeout value as needed
-    await page.click(
-      '#system-broadcast-notification-dialog .modal-footer .clearfix .pull-right button[action="ok"]:first-child'
-    );
-
-    console.log("Button clicked.");
-  } catch (error) {
-    console.log("here error 2", error);
-  }
+  await page.waitForSelector("#system-broadcast-notification-dialog");
+  await page.waitForSelector(".pull-right");
+  await page.waitForTimeout(2500); // Adjust the timeout value as needed
+  await page.click(
+    '#system-broadcast-notification-dialog .modal-footer .clearfix .pull-right button[action="ok"]:first-child'
+  );
 
   // at this point we are inside the dashboard now we have to navigate to build tab
 
@@ -86,6 +90,37 @@ async function main() {
   await page.click(
     ".navbar .navbar-inner .container-fluid ul > li:first-child > a"
   );
+
+  // now we have navigated to the build tab now here we have to do all the selects and stuff
+
+  //1. get all year values from select dropdown
+
+  //   const yearOptions = await page.evaluate(() => {
+  //     const selectElement = document.querySelector("#yearSelect");
+  //     return Array.from(selectElement.options).map((option) => option.value);
+  //   });
+
+  //   await page.waitForNavigation({ waitUntil: "domcontentloaded" });
+
+  // from below lines of code we have an issue
+  try {
+    await page.waitForSelector(
+      "#content-container > #content-vehicleValues > #content > #container-build > #selector-model > .well > .body-panel > .row-fluid:first-child > #year-type-filters > .pull-left:first-child"
+    );
+    await highlightElement(
+      page,
+      "#content-container > #content-vehicleValues > #content > #container-build > #selector-model > .well > .body-panel > .row-fluid:first-child > #year-type-filters > .pull-left:first-child > span:first-child"
+    );
+    await page.click(
+      "#content-container > #content-vehicleValues > #content > #container-build > #selector-model > .well > .body-panel > .row-fluid:first-child > #year-type-filters > .pull-left:first-child > span:first-child"
+    );
+
+    // await page.click("#year-type-filters .year-dropdown .k-dropdown-wrap");
+  } catch (error) {
+    console.log("err new", error);
+  }
+
+  //   console.log("yearOptions");
 }
 
 main().catch((e) => console.log(e));
