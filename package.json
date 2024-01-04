@@ -1,0 +1,21 @@
+{
+  "name": "ford-scrapper",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node ford_puppeteer.js",
+    "start:dev": "nodemon ford_puppeteer.js",
+    "debug": "nodemon ford_puppeteer.js --inspect"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^16.3.1",
+    "puppeteer": "^21.6.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+}
