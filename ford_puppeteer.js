@@ -67,19 +67,25 @@ async function main() {
 
   try {
     await page.waitForSelector("#system-broadcast-notification-dialog");
+    await page.waitForSelector(".pull-right");
     await page.waitForTimeout(2000); // Adjust the timeout value as needed
-    await page.waitForSelector("a.close");
+    await page.click(
+      '#system-broadcast-notification-dialog .modal-footer .clearfix .pull-right button[action="ok"]:first-child'
+    );
 
-    await page.click("a.close");
     console.log("Button clicked.");
   } catch (error) {
     console.log("here error 2", error);
   }
 
-  //   await browser.close();
+  // at this point we are inside the dashboard now we have to navigate to build tab
 
-  //   await currentPage.waitForSelector("button[action=ok]");
-  //   await currentPage.click("button[action=ok]");
+  await page.waitForSelector(
+    ".navbar .navbar-inner .container-fluid ul > li:first-child > a"
+  );
+  await page.click(
+    ".navbar .navbar-inner .container-fluid ul > li:first-child > a"
+  );
 }
 
 main().catch((e) => console.log(e));
