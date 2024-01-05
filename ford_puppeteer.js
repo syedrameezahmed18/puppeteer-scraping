@@ -144,7 +144,7 @@ async function main() {
 
     await yearDropDownSpan.evaluate((a) => a.click());
 
-    await page.waitForSelector("#year-dropdown-list", { visible: true });
+    await page.waitForSelector("#year-dropdown-list ul li", { visible: true });
 
     const yearElements = await page.$$("#year-dropdown-list ul li");
 
@@ -179,21 +179,29 @@ async function main() {
       // );
       await dropDownValueSelect.evaluate((a) => a.click());
 
+      await page.waitForTimeout(1000);
+
       let typeDropDownSpan = await page.$(
         "#year-type-filters > .pull-left:nth-child(2) > span"
       );
 
       await typeDropDownSpan.evaluate((a) => a.click());
 
-      await page.waitForSelector("#type-dropdown-list", { visible: true });
+      await page.waitForSelector("#type-dropdown-list ul li", {
+        visible: true,
+      });
 
       const typeElements = await page.$$("#type-dropdown-list ul li");
+
+      console.log("eval", year, typeElements.length);
 
       for (let j = 0; j < typeElements.length; j++) {
         const type = await page.evaluate(
           (element) => element.textContent,
           typeElements[j]
         );
+
+        console.log("evalnew", year, typeElements.length);
 
         const typeSelect = await page.$(
           `#type-dropdown-list ul li:nth-child(${(j + 1).toString()})`
@@ -228,6 +236,12 @@ async function main() {
           vehicleList.push({ title, image });
         }
       }
+
+      await yearDropDownSpan.evaluate((a) => a.click());
+
+      await page.waitForSelector("#year-dropdown-list ul li", {
+        visible: true,
+      });
     }
 
     // await page.click("#year-type-filters .year-dropdown .k-dropdown-wrap");
@@ -235,7 +249,7 @@ async function main() {
     console.log("err new", error);
   }
 
-  console.log("endgame", vehicleList);
+  // console.log("endgame", vehicleList);
 
   await page.waitForSelector(
     ".body-panel > .row-fluid:nth-child(2) > #model-listView-container"
