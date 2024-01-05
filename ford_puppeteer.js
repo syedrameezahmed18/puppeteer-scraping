@@ -1,6 +1,7 @@
 require("dotenv").config();
 const puppeteer = require("puppeteer");
-const fs = require("fs");
+
+const { MongoClient } = require("mongodb");
 
 console.log(process.env.DUMMY_API_KEY);
 
@@ -24,6 +25,14 @@ async function highlightElement(page, selector) {
 async function main() {
   //   const width = 1024,
   //      height = 600;
+
+  // Replace 'mongodb://localhost:27017' with your MongoDB connection string
+  const databaseUrl = "mongodb://localhost:27017";
+
+  // Replace 'yourDbName' and 'yourCollectionName' with your MongoDB database name and collection name
+  const dbName = "ford-scrap";
+  const collectionName = "vehicles";
+
   const browser = await puppeteer.launch({
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
     headless: false,
@@ -31,6 +40,23 @@ async function main() {
     // defaultViewport: { width, height },
     devtools: false,
   });
+
+  async function testConnection() {
+    const url = "mongodb://localhost:27017";
+
+    const client = new MongoClient(url);
+
+    try {
+      await client.connect();
+      console.log("Connected to MongoDB");
+    } catch (error) {
+      console.error("Error connecting to MongoDB:", error.message);
+    } finally {
+      await client.close();
+    }
+  }
+
+  //   testConnection();
 
   const page = await browser.newPage();
   //   await page.setViewport({ width, height });
@@ -155,10 +181,33 @@ async function main() {
 
     vehicleList.push({ title, image });
   }
-
   console.log("final", vehicleList);
 
+  // Store data in MongoDB
+  await storeDataInMongoDB(vehicleList, databaseUrl, dbName, collectionName);
+
+  await browser.close();
+
   //   console.log("yearOptions");
+}
+
+async function storeDataInMongoDB(data, databaseUrl, dbName, collectionName) {
+  const client = new MongoClient(databaseUrl);
+
+  try {
+    await client.connect();
+    console.log("Connected to the database");
+
+    const db = client.db(dbName);
+    const collection = db.collection(collectionName);
+
+    // Insert the data into the MongoDB collection
+    await collection.insertMany(data);
+
+    console.log("Data stored in MongoDB");
+  } finally {
+    await client.close();
+  }
 }
 
 main().catch((e) => console.log(e));
