@@ -29,7 +29,7 @@ async function main() {
     headless: false,
     defaultViewport: null,
     // defaultViewport: { width, height },
-    devtools: true,
+    devtools: false,
   });
 
   const page = await browser.newPage();
@@ -120,14 +120,23 @@ async function main() {
     console.log("err new", error);
   }
 
-  await page.waitForSelector("#model-listView");
-  const vehiclesContainer = await page.$$("#model-listView > .vehicle-model");
+  await page.waitForSelector(
+    ".body-panel > .row-fluid:nth-child(2) > #model-listView-container"
+  );
+
+  await highlightElement(
+    page,
+    ".body-panel > .row-fluid:nth-child(2) > #model-listView-container"
+  );
+
+  await page.waitForSelector("#model-listView > .vehicle-model:first-child");
+
+  const vehiclesContainer = await page.$$(".vehicle-model");
 
   for (const vehicle of vehiclesContainer) {
     try {
-      const vehicleTitle = await page.evaluate(
-        (el) => el.querySelector(`span`).textContent,
-        vehicle
+      const vehicleTitle = await vehicle.$eval("span", (element) =>
+        element.textContent.trim()
       );
 
       console.log("vec", vehicleTitle);
