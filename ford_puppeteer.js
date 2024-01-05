@@ -133,17 +133,30 @@ async function main() {
 
   const vehiclesContainer = await page.$$(".vehicle-model");
 
+  let vehicleList = [];
+
   for (const vehicle of vehiclesContainer) {
+    let title,
+      image = "";
+
     try {
-      const vehicleTitle = await vehicle.$eval("span", (element) =>
+      title = await vehicle.$eval("span", (element) =>
         element.textContent.trim()
       );
-
-      console.log("vec", vehicleTitle);
     } catch (error) {
-      console.log("loop error", error);
+      console.log("loop error title", error);
     }
+
+    try {
+      image = await vehicle.$eval("img", (element) => element.src);
+    } catch (error) {
+      console.log("loop error img", error);
+    }
+
+    vehicleList.push({ title, image });
   }
+
+  console.log("final", vehicleList);
 
   //   console.log("yearOptions");
 }
