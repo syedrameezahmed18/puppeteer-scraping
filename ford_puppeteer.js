@@ -55,6 +55,8 @@ async function main() {
 
   //   testConnection();
 
+  deleteAllDataInCollectionMongoDB(databaseUrl, dbName, collectionName);
+
   const page = await browser.newPage();
   //   await page.setViewport({ width, height });
 
@@ -289,11 +291,11 @@ async function main() {
   //   console.log("final", vehicleList);
 
   // Store data in MongoDB
-  //   await storeDataInMongoDB(vehicleList, databaseUrl, dbName, collectionName);
+  await storeDataInMongoDB(vehicleList, databaseUrl, dbName, collectionName);
 
-  //   await browser.close();
+  await browser.close();
 
-  //   console.log("yearOptions");
+  console.log("yearOptions");
 }
 
 async function storeDataInMongoDB(data, databaseUrl, dbName, collectionName) {
@@ -312,6 +314,28 @@ async function storeDataInMongoDB(data, databaseUrl, dbName, collectionName) {
     console.log("Data stored in MongoDB");
   } finally {
     await client.close();
+  }
+}
+
+async function deleteAllDataInCollectionMongoDB(
+  databaseUrl,
+  dbName,
+  collectionName
+) {
+  const client = new MongoClient(databaseUrl);
+
+  const db = client.db(dbName);
+  const collection = db.collection(collectionName);
+
+  try {
+    // Delete all documents in the collection
+    const deleteResult = await collection.deleteMany({});
+    console.log(`${deleteResult.deletedCount} documents deleted`);
+  } catch (error) {
+    console.error("Error deleting documents:", error);
+  } finally {
+    // Close the MongoDB connection
+    client.close();
   }
 }
 
