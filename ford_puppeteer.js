@@ -105,19 +105,35 @@ async function main() {
   // from below lines of code we have an issue
   try {
     await page.waitForSelector(
-      "#content-container > #content-vehicleValues > #content > #container-build > #selector-model > .well > .body-panel > .row-fluid:first-child > #year-type-filters > .pull-left:first-child"
+      ".body-panel > .row-fluid:first-child > #year-type-filters > .pull-left:first-child > span"
     );
     await highlightElement(
       page,
-      "#content-container > #content-vehicleValues > #content > #container-build > #selector-model > .well > .body-panel > .row-fluid:first-child > #year-type-filters > .pull-left:first-child > span:first-child"
+      ".body-panel > .row-fluid:first-child > #year-type-filters > .pull-left:first-child > span"
     );
-    await page.click(
-      "#content-container > #content-vehicleValues > #content > #container-build > #selector-model > .well > .body-panel > .row-fluid:first-child > #year-type-filters > .pull-left:first-child > span:first-child"
-    );
+    // await page.click(
+    //   "#year-type-filters > div:nth-child(1) > span > span > span.k-input"
+    // );
 
     // await page.click("#year-type-filters .year-dropdown .k-dropdown-wrap");
   } catch (error) {
     console.log("err new", error);
+  }
+
+  await page.waitForSelector("#model-listView");
+  const vehiclesContainer = await page.$$("#model-listView > .vehicle-model");
+
+  for (const vehicle of vehiclesContainer) {
+    try {
+      const vehicleTitle = await page.evaluate(
+        (el) => el.querySelector(`span`).textContent,
+        vehicle
+      );
+
+      console.log("vec", vehicleTitle);
+    } catch (error) {
+      console.log("loop error", error);
+    }
   }
 
   //   console.log("yearOptions");
