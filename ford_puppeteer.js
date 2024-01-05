@@ -3,7 +3,7 @@ const puppeteer = require("puppeteer");
 
 const { MongoClient } = require("mongodb");
 
-console.log(process.env.DUMMY_API_KEY);
+console.log(process.env.DUMMY_API_KEY || "");
 
 const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
 
@@ -26,10 +26,7 @@ async function main() {
   //   const width = 1024,
   //      height = 600;
 
-  // Replace 'mongodb://localhost:27017' with your MongoDB connection string
   const databaseUrl = "mongodb://localhost:27017";
-
-  // Replace 'yourDbName' and 'yourCollectionName' with your MongoDB database name and collection name
   const dbName = "ford-scrap";
   const collectionName = "vehicles";
 
@@ -129,6 +126,9 @@ async function main() {
   //   await page.waitForNavigation({ waitUntil: "domcontentloaded" });
 
   // from below lines of code we have an issue
+
+  let vehicleList = [];
+
   try {
     await page.waitForSelector(
       ".body-panel > .row-fluid:first-child > #year-type-filters > .pull-left:first-child > span"
@@ -137,14 +137,105 @@ async function main() {
       page,
       ".body-panel > .row-fluid:first-child > #year-type-filters > .pull-left:first-child > span"
     );
-    // await page.click(
-    //   "#year-type-filters > div:nth-child(1) > span > span > span.k-input"
-    // );
+
+    let yearDropDownSpan = await page.$(
+      "#year-type-filters > .pull-left:first-child > span"
+    );
+
+    await yearDropDownSpan.evaluate((a) => a.click());
+
+    await page.waitForSelector("#year-dropdown-list", { visible: true });
+
+    const yearElements = await page.$$("#year-dropdown-list ul li");
+
+    // Loop through each li element and get its text content
+    // for (const yearElement of yearElements) {
+    //   const year = await page.evaluate(
+    //     (element) => element.textContent,
+    //     yearElement
+    //   );
+
+    //   console.log('dropdown options',year)
+    // }
+
+    for (let i = 0; i < yearElements.length; i++) {
+      const year = await page.evaluate(
+        (element) => element.textContent,
+        yearElements[i]
+      );
+
+      let dropDownValueSelect = await page.$(
+        `#year-dropdown-list ul li:nth-child(${(
+          yearElements.length - i
+        ).toString()})`
+      );
+
+      // console.log(
+      //   "new",
+      //   dropDownValueSelect,
+      //   `#year-dropdown-list ui li:nth-child(${(
+      //     yearElements.length - i
+      //   ).toString()})`
+      // );
+      await dropDownValueSelect.evaluate((a) => a.click());
+
+      let typeDropDownSpan = await page.$(
+        "#year-type-filters > .pull-left:nth-child(2) > span"
+      );
+
+      await typeDropDownSpan.evaluate((a) => a.click());
+
+      await page.waitForSelector("#type-dropdown-list", { visible: true });
+
+      const typeElements = await page.$$("#type-dropdown-list ul li");
+
+      for (let j = 0; j < typeElements.length; j++) {
+        const type = await page.evaluate(
+          (element) => element.textContent,
+          typeElements[j]
+        );
+
+        const typeSelect = await page.$(
+          `#type-dropdown-list ul li:nth-child(${(j + 1).toString()})`
+        );
+
+        await typeSelect.evaluate((a) => a.click());
+
+        await page.waitForSelector(
+          "#model-listView > .vehicle-model:first-child"
+        );
+
+        const vehiclesContainer = await page.$$(".vehicle-model");
+
+        for (const vehicle of vehiclesContainer) {
+          let title,
+            image = "";
+
+          try {
+            title = await vehicle.$eval("span", (element) =>
+              element.textContent.trim()
+            );
+          } catch (error) {
+            console.log("loop error title", error);
+          }
+
+          try {
+            image = await vehicle.$eval("img", (element) => element.src);
+          } catch (error) {
+            console.log("loop error img", error);
+          }
+
+          vehicleList.push({ title, image });
+        }
+      }
+    }
 
     // await page.click("#year-type-filters .year-dropdown .k-dropdown-wrap");
   } catch (error) {
     console.log("err new", error);
   }
+
+  console.log("endgame", vehicleList);
 
   await page.waitForSelector(
     ".body-panel > .row-fluid:nth-child(2) > #model-listView-container"
@@ -155,38 +246,38 @@ async function main() {
     ".body-panel > .row-fluid:nth-child(2) > #model-listView-container"
   );
 
-  await page.waitForSelector("#model-listView > .vehicle-model:first-child");
+  // await page.waitForSelector("#model-listView > .vehicle-model:first-child");
 
-  const vehiclesContainer = await page.$$(".vehicle-model");
+  // const vehiclesContainer = await page.$$(".vehicle-model");
 
-  let vehicleList = [];
+  // let vehicleList = [];
 
-  for (const vehicle of vehiclesContainer) {
-    let title,
-      image = "";
+  // for (const vehicle of vehiclesContainer) {
+  //   let title,
+  //     image = "";
 
-    try {
-      title = await vehicle.$eval("span", (element) =>
-        element.textContent.trim()
-      );
-    } catch (error) {
-      console.log("loop error title", error);
-    }
+  //   try {
+  //     title = await vehicle.$eval("span", (element) =>
+  //       element.textContent.trim()
+  //     );
+  //   } catch (error) {
+  //     console.log("loop error title", error);
+  //   }
 
-    try {
-      image = await vehicle.$eval("img", (element) => element.src);
-    } catch (error) {
-      console.log("loop error img", error);
-    }
+  //   try {
+  //     image = await vehicle.$eval("img", (element) => element.src);
+  //   } catch (error) {
+  //     console.log("loop error img", error);
+  //   }
 
-    vehicleList.push({ title, image });
-  }
-  console.log("final", vehicleList);
+  //   vehicleList.push({ title, image });
+  // }
+  //   console.log("final", vehicleList);
 
   // Store data in MongoDB
-  await storeDataInMongoDB(vehicleList, databaseUrl, dbName, collectionName);
+  //   await storeDataInMongoDB(vehicleList, databaseUrl, dbName, collectionName);
 
-  await browser.close();
+  //   await browser.close();
 
   //   console.log("yearOptions");
 }
