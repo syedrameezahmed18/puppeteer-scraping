@@ -93,6 +93,7 @@ async function main() {
   await page.waitForNavigation({ waitUntil: "domcontentloaded" });
 
   await page.waitForTimeout(2000); // Adjust the timeout value as needed
+  sleep(2000)
 
   await page.waitForSelector("#controls");
 
@@ -163,7 +164,7 @@ async function main() {
     for (let i = 0; i < yearElements.length; i++) {
       const year = await page.evaluate(
         (element) => element.textContent,
-        yearElements[i]
+        yearElements[yearElements.length - 1]
       );
 
       let dropDownValueSelect = await page.$(
@@ -217,12 +218,12 @@ async function main() {
 
         const vehiclesContainer = await page.$$(".vehicle-model");
 
-        for (const vehicle of vehiclesContainer) {
+        for (let k=0; k <vehiclesContainer.length; k++) {
           let title,
             image = "";
 
           try {
-            title = await vehicle.$eval("span", (element) =>
+            title = await vehiclesContainer[k].$eval("span", (element) =>
               element.textContent.trim()
             );
           } catch (error) {
@@ -230,12 +231,75 @@ async function main() {
           }
 
           try {
-            image = await vehicle.$eval("img", (element) => element.src);
+            image = await vehiclesContainer[k].$eval("img", (element) => element.src);
           } catch (error) {
             console.log("loop error img", error);
           }
 
-          vehicleList.push({ title, image });
+          // new logic to now click on each vehicle that would open the trim section and in that get all the trim variants in array
+          // of objects having details body, trim description, pl, msrp
+
+          const vehicleSelect = await page.$(
+            `#model-listView > .vehicle-model:nth-child(${(k+1).toString()})`
+          )
+
+          await vehicleSelect.evaluate((a)=> a.click());
+
+          // just to properly load the trim section
+          await page.waitForTimeout(100)
+
+          //getting the trim table tr
+          await page.waitForSelector(
+            "tbody > tr", {visible: true}
+          )
+
+          const trims = await page.$$("tbody > tr")
+
+          let trimList = []
+
+          for (let trim=0; trim<trims.length; trim++) {
+            let body, trimDescription, pl, msrp = ''
+
+            try {
+              body = await trims[trim].$eval("td:nth-child(2)", (element) =>
+                element.textContent.trim()
+              );
+            } catch (error) {
+              console.log("loop error body", error);
+            }
+
+            try {
+              trimDescription = await trims[trim].$eval("td:nth-child(3)", (element) =>
+                element.textContent.trim()
+              );
+            } catch (error) {
+              console.log("loop error desc", error);
+            }
+
+            try {
+              pl = await trims[trim].$eval("td:nth-child(4)", (element) =>
+                element.textContent.trim()
+              );
+            } catch (error) {
+              console.log("loop error body", error);
+            }
+
+            try {
+              msrp = await trims[trim].$eval("td:nth-child(6) > div", (element) =>
+                element.textContent.trim()
+              );
+            } catch (error) {
+              console.log("loop error body", error);
+            }
+
+            trimList.push({body, trimDescription, pl ,msrp})
+
+          
+          }
+
+
+
+          vehicleList.push({ title, image, trimList });
         }
       }
 
@@ -291,6 +355,9 @@ async function main() {
   //   console.log("final", vehicleList);
 
   // Store data in MongoDB
+
+    console.log('final vec',vehicleList)
+
   await storeDataInMongoDB(vehicleList, databaseUrl, dbName, collectionName);
 
   await browser.close();
@@ -324,18 +391,26 @@ async function deleteAllDataInCollectionMongoDB(
 ) {
   const client = new MongoClient(databaseUrl);
 
-  const db = client.db(dbName);
-  const collection = db.collection(collectionName);
-
   try {
-    // Delete all documents in the collection
+    await client.connect();
+    const db = client.db(dbName);
+    const collections = await db.listCollections({ name: collectionName }).toArray();
+
+    if (collections.length === 0) {
+      console.log(`Collection '${collectionName}' does not exist. Creating...`);
+      await db.createCollection(collectionName);
+      console.log(`Collection '${collectionName}' created.`);
+    }
+
+    const collection = db.collection(collectionName);
+
     const deleteResult = await collection.deleteMany({});
     console.log(`${deleteResult.deletedCount} documents deleted`);
   } catch (error) {
     console.error("Error deleting documents:", error);
   } finally {
     // Close the MongoDB connection
-    client.close();
+    await client.close();
   }
 }
 
