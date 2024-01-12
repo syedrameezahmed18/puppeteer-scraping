@@ -284,10 +284,16 @@ await quoteDialogBtn.evaluate((a) => a.click())
           let trimList = []
 
           for (let trim=0; trim<trims.length; trim++) {
+           
+            console.log('trim index is',trim,trims.length, trims[trim])
+
+            await page.waitForSelector("tbody > tr")
+
+            await page.waitForSelector(
+              `tbody > tr:nth-child(${(trim+1).toString()}) > td:nth-child(1)`, {visible: true}
+            )
             let body, trimDescription, pl, msrp = ''
-
-            
-
+            await sleep(3000)
             try {
               body = await trims[trim].$eval("td:nth-child(2)", (element) =>
                 element.textContent.trim()
@@ -330,7 +336,7 @@ await quoteDialogBtn.evaluate((a) => a.click())
             await page.waitForSelector("td:nth-child(1) > input")
 
             await highlightElement(page, "td:nth-child(1)")
-            const trimRadioButton = await page.$("td:nth-child(1) > input")
+            const trimRadioButton = await page.$(`tr:nth-child(${(trim+1).toString()}) td:nth-child(1) > input`)
 
             console.log('tb',trimRadioButton)
 
@@ -375,9 +381,6 @@ await quoteDialogBtn.evaluate((a) => a.click())
               let key = ''
 
               key = await mainBuildOptions[buildOptionIndex].$eval(".well > .container-panel > .header-panel > .clearfix > .pull-left > h5",(element)=> element.textContent.trim())
-
-              console.log('key',key)
-
               additionalOptions['property'] = key
             }
 
@@ -400,6 +403,61 @@ await quoteDialogBtn.evaluate((a) => a.click())
               ".body-panel > .row-fluid:first-child > #year-type-filters > .pull-left:first-child > span"
             ); 
 
+            
+            await page.waitForSelector("tbody > tr")
+
+            await page.waitForSelector(
+              `tbody > tr:nth-child(${(trim+1).toString()}) > td:nth-child(1)`, {visible: true}
+            )
+
+  //           await page.waitForSelector(
+  //             `#model-listView > .vehicle-model:nth-child(${(k+1).toString()})`
+  //           )
+
+  //           await yearDropDownSpan.evaluate((a) => a.click());
+
+  //           await dropDownValueSelect.evaluate((a) => a.click());
+
+  //           await page.waitForTimeout(1000);
+
+  //           await typeDropDownSpan.evaluate((a) => a.click());
+
+  //           await page.waitForSelector("#type-dropdown-list ul li", {
+  //             visible: true,
+  //           });
+
+  //           await typeSelect.evaluate((a) => a.click());
+
+  //           await page.waitForSelector(
+  //             "#model-listView > .vehicle-model:first-child"
+  //           );
+
+  //           await vehicleSelect.evaluate((a)=> a.click());
+
+  //           await sleep(2000);
+
+  //           try {
+  //             const waitResult = await page.waitForSelector("#quoteDlg", {visible:true, timeout: 5000 });
+  //             console.log("%cwaitResult:",'background-color:green;color:white;',{waitResult})
+  //             const highElementRes = await highlightElement(page, "#quoteDlg > div.modal-footer")
+  //             console.log("%chighElementRest:",'background-color:green;color:white;',{highElementRes})
+  //             const quoteDialogBtn = await page.$("#quoteDlg > div.modal-footer > div > div > button:nth-child(2)")
+  //             console.log("%cquoteDialogBtnt:",'background-color:green;color:white;',{quoteDialogBtn})
+  //             if (quoteDialogBtn) {
+  // // If the popup appears, click on its child component
+  // await quoteDialogBtn.evaluate((a) => a.click())
+  //             }
+
+  //             await page.waitForSelector(
+  //               "tbody > tr", {visible: true}
+  //             )
+  //           }
+  //           catch (e) {
+  //             console.log('%cno quote modal','background-color:red;color:white;',e)
+  //           }
+
+
+
             await sleep(2000);
 
             
@@ -408,6 +466,8 @@ await quoteDialogBtn.evaluate((a) => a.click())
           vehicleList.push({ title, image, trimList });
         }
       }
+
+      console.log('main list',vehicleList)
 
       await yearDropDownSpan.evaluate((a) => a.click());
 
