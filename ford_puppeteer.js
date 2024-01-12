@@ -92,8 +92,7 @@ async function main() {
 
   await page.waitForNavigation({ waitUntil: "domcontentloaded" });
 
-  await page.waitForTimeout(2000); // Adjust the timeout value as needed
-  sleep(2000)
+  await page.waitForTimeout(2500); // Adjust the timeout value as needed
 
   await page.waitForSelector("#controls");
 
@@ -132,6 +131,8 @@ async function main() {
 
   let vehicleList = [];
 
+  await page.waitForTimeout(5000)
+
   try {
     await page.waitForSelector(
       ".body-panel > .row-fluid:first-child > #year-type-filters > .pull-left:first-child > span"
@@ -160,6 +161,7 @@ async function main() {
 
     //   console.log('dropdown options',year)
     // }
+
 
     for (let i = 0; i < yearElements.length; i++) {
       const year = await page.evaluate(
@@ -238,27 +240,53 @@ async function main() {
 
           // new logic to now click on each vehicle that would open the trim section and in that get all the trim variants in array
           // of objects having details body, trim description, pl, msrp
+          try {
+            
+            const vehicleSelect = await page.$(
+              `#model-listView > .vehicle-model:nth-child(${(k+1).toString()})`
+            )
+  
+            await vehicleSelect.evaluate((a)=> a.click());
+          } catch (error) {
+            console.log("vehicleSelect err:",{vehicleSelect})
+          }
 
-          const vehicleSelect = await page.$(
-            `#model-listView > .vehicle-model:nth-child(${(k+1).toString()})`
-          )
+          //in the second and above loops there might appear a popup box with id quoteDlg
 
-          await vehicleSelect.evaluate((a)=> a.click());
+          await sleep(2000);
 
-          // just to properly load the trim section
-          await page.waitForTimeout(100)
+          try {
+            const waitResult = await page.waitForSelector("#quoteDlg", {visible:true, timeout: 5000 });
+            console.log("%cwaitResult:",'background-color:green;color:white;',{waitResult})
+            const highElementRes = await highlightElement(page, "#quoteDlg > div.modal-footer")
+            console.log("%chighElementRest:",'background-color:green;color:white;',{highElementRes})
+            const quoteDialogBtn = await page.$("#quoteDlg > div.modal-footer > div > div > button:nth-child(2)")
+            console.log("%cquoteDialogBtnt:",'background-color:green;color:white;',{quoteDialogBtn})
+            if (quoteDialogBtn) {
+// If the popup appears, click on its child component
+await quoteDialogBtn.evaluate((a) => a.click())
+            }
+          }
+          catch (e) {
+            console.log('%cno quote modal','background-color:red;color:white;',e)
+          }
+
+      
+          // // just to properly load the trim section
+          // await page.waitForTimeout(100)
 
           //getting the trim table tr
           await page.waitForSelector(
             "tbody > tr", {visible: true}
           )
-
           const trims = await page.$$("tbody > tr")
 
           let trimList = []
 
           for (let trim=0; trim<trims.length; trim++) {
             let body, trimDescription, pl, msrp = ''
+
+            
 
             try {
               body = await trims[trim].$eval("td:nth-child(2)", (element) =>
@@ -281,7 +309,7 @@ async function main() {
                 element.textContent.trim()
               );
             } catch (error) {
-              console.log("loop error body", error);
+              console.log("loop error pl", error);
             }
 
             try {
@@ -292,12 +320,90 @@ async function main() {
               console.log("loop error body", error);
             }
 
-            trimList.push({body, trimDescription, pl ,msrp})
 
-          
+            // now from this point onwards we need to click each radio button which would navigate to the main detail list
+
+            await page.waitForSelector(
+              "tbody > tr", {visible: true}
+            )
+
+            await page.waitForSelector("td:nth-child(1) > input")
+
+            await highlightElement(page, "td:nth-child(1)")
+            const trimRadioButton = await page.$("td:nth-child(1) > input")
+
+            console.log('tb',trimRadioButton)
+
+            await trimRadioButton.evaluate((a) => a.click())
+
+            try {
+             page.waitForSelector("#quoteDlg", {visible:true, timeout: 5000 }).then(async()=> {
+              console.log("waitForSeletor then::::::::")
+              const quoteDialogBtn = await page.$("#quoteDlg > div.modal-footer > div > div > button:nth-child(2)")
+              console.log("%cquoteDialogBtnt:",'background-color:green;color:white;',{quoteDialogBtn})
+              if (quoteDialogBtn) {
+                // If the popup appears, click on its child component
+                await quoteDialogBtn.evaluate((a) => a.click())
+                            }
+             }).catch(e => {
+              console.log("waitForSelector error::::::::",e)
+             });
+  //             console.log("%cwaitResult:",'background-color:green;color:white;',{waitResult})
+  //             const highElementRes = await highlightElement(page, "#quoteDlg > div.modal-footer")
+  //             console.log("%chighElementRest:",'background-color:green;color:white;',{highElementRes})
+  //             const quoteDialogBtn = await page.$("#quoteDlg > div.modal-footer > div > div > button:nth-child(2)")
+  //             console.log("%cquoteDialogBtnt:",'background-color:green;color:white;',{quoteDialogBtn})
+  //             if (quoteDialogBtn) {
+  // // If the popup appears, click on its child component
+  // await quoteDialogBtn.evaluate((a) => a.click())
+  //             }
+            }
+            catch (e) {
+              console.log('%cno quote modal','background-color:red;color:white;',e)
+            }
+
+            await page.waitForNavigation({ waitUntil: "domcontentloaded" });
+
+            await page.waitForSelector("#container-options > #panels:nth-child(3)")
+
+            const mainBuildOptions = await page.$$("#panels:nth-child(3) > .panel")
+
+            let additionalOptions = {}
+
+            for (let buildOptionIndex=0; buildOptionIndex<mainBuildOptions.length; buildOptionIndex++) {
+              let code, description, msrp, invoice, dealer = ''
+              let key = ''
+
+              key = await mainBuildOptions[buildOptionIndex].$eval(".well > .container-panel > .header-panel > .clearfix > .pull-left > h5",(element)=> element.textContent.trim())
+
+              console.log('key',key)
+
+              additionalOptions['property'] = key
+            }
+
+            // till this point
+            trimList.push({body, trimDescription, pl ,msrp, additionalOptions})
+
+            // now go back to original page
+
+            await page.waitForSelector("#sidebar > #sidebar-contents")
+            const buildSidebarBtn = await page.$("#sidebar > #sidebar-contents > li:first-child > a")
+            await buildSidebarBtn.evaluate((a) => a.click())
+
+            //here we are at a point where we have selected a vehicle we got all the trim info we navigated to the option page and now we 
+            // are back to the vehicles page here however we can find a popup showing to remove the current quote first before selecting the next vehicle
+
+            await page.waitForNavigation({ waitUntil: "domcontentloaded" });
+
+           
+            await page.waitForSelector(
+              ".body-panel > .row-fluid:first-child > #year-type-filters > .pull-left:first-child > span"
+            ); 
+
+            await sleep(2000);
+
+            
           }
-
-
 
           vehicleList.push({ title, image, trimList });
         }
