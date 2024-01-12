@@ -224,19 +224,28 @@ async function main() {
           let title,
             image = "";
 
-          try {
-            title = await vehiclesContainer[k].$eval("span", (element) =>
-              element.textContent.trim()
-            );
-          } catch (error) {
-            console.log("loop error title", error);
-          }
+            try {
+              title = await page.evaluate((vecIndex) => {
+                const td = document.querySelector(`.vehicle-model:nth-child(${(vecIndex+1).toString()}) > span`)
+                return td ? td.textContent.trim():null
+              },k)
 
-          try {
-            image = await vehiclesContainer[k].$eval("img", (element) => element.src);
-          } catch (error) {
-            console.log("loop error img", error);
-          }
+              console.log('title',title)
+            } catch (error) {
+              console.log('loop error title',error)
+            }
+            try {
+              img = await page.evaluate((vecIndex) => {
+                const td = document.querySelector(`.vehicle-model:nth-child(${(vecIndex+1).toString()}) > img`)
+                return td ? td.src:null
+              },k)
+
+              console.log('img',img)
+            } catch (error) {
+              console.log('loop error img',error)
+            }
+
+      
 
           // new logic to now click on each vehicle that would open the trim section and in that get all the trim variants in array
           // of objects having details body, trim description, pl, msrp
@@ -295,35 +304,47 @@ await quoteDialogBtn.evaluate((a) => a.click())
             let body, trimDescription, pl, msrp = ''
             await sleep(3000)
             try {
-              body = await trims[trim].$eval("td:nth-child(2)", (element) =>
-                element.textContent.trim()
-              );
+              body = await page.evaluate((trimIndex) => {
+                const td = document.querySelector(`tbody > tr:nth-child(${(trimIndex + 1).toString()}) > td:nth-child(2)`);
+                return td ? td.textContent.trim() : null;
+              }, trim);
+
+              console.log('body is',body)
             } catch (error) {
               console.log("loop error body", error);
             }
 
             try {
-              trimDescription = await trims[trim].$eval("td:nth-child(3)", (element) =>
-                element.textContent.trim()
-              );
+              trimDescription = await page.evaluate((trimIndex) => {
+                const tdd = document.querySelector(`tbody > tr:nth-child(${(trimIndex + 1).toString()}) > td:nth-child(3)`);
+                return tdd ? tdd.textContent.trim() : null;
+              }, trim);
+
+              console.log('desc is',trimDescription)
             } catch (error) {
               console.log("loop error desc", error);
             }
 
             try {
-              pl = await trims[trim].$eval("td:nth-child(4)", (element) =>
-                element.textContent.trim()
-              );
+              pl = await page.evaluate((trimIndex) => {
+                const tdpl = document.querySelector(`tbody > tr:nth-child(${(trimIndex + 1).toString()}) > td:nth-child(4)`);
+                return tdpl ? tdpl.textContent.trim() : null;
+              }, trim);
+
+              console.log('pl is',pl)
             } catch (error) {
               console.log("loop error pl", error);
             }
 
             try {
-              msrp = await trims[trim].$eval("td:nth-child(6) > div", (element) =>
-                element.textContent.trim()
-              );
+              msrp = await page.evaluate((trimIndex) => {
+                const td = document.querySelector(`tbody > tr:nth-child(${(trimIndex + 1).toString()}) > td:nth-child(6)`)
+                return td ? td.textContent.trim(): null
+              }, trim)
+
+              console.log('msrp is',msrp)
             } catch (error) {
-              console.log("loop error body", error);
+              console.log("loop error msrp", error);
             }
 
 
