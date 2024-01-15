@@ -12,17 +12,10 @@ async function highlightElement(page, selector) {
     const element = document.querySelector(selector);
 
     if (element) {
-      //   const originalBackgroundColor = element.style.backgroundColor;
       element.style.border = "3px solid maroon";
-
-      //   setTimeout(() => {
-      //     element.style.backgroundColor = originalBackgroundColor;
-      //   }, 1000); // Adjust the timeout as needed
     }
   }, selector);
 }
-
-async function getBuildDetails(id) {}
 
 async function main() {
   //   const width = 1024,
@@ -62,7 +55,7 @@ async function main() {
   const page = await browser.newPage();
   //   await page.setViewport({ width, height });
 
-  page.setDefaultNavigationTimeout(90000);
+  page.setDefaultNavigationTimeout(30000);
 
   await page.goto("https://www.fordctt.dealerconnection.com/build/vehicle.do");
 
@@ -83,18 +76,11 @@ async function main() {
 
   await page.click("#btn-sign-in[type=submit]");
 
-  //   await page.goto(
-  //     "https://www.fordctt.dealerconnection.com/dashboard/?locale=en_US"
-  //   );
-
-  //   const pages = await browser.pages();
-  //   let currentPage = pages[pages.length - 1];
-
   // logged in now handling first popup and click on agree
 
   await page.waitForNavigation({ waitUntil: "domcontentloaded" });
 
-  await page.waitForTimeout(2500); // Adjust the timeout value as needed
+  await sleep(2500); // Adjust the timeout value as needed
 
   await page.waitForSelector("#controls");
 
@@ -104,7 +90,7 @@ async function main() {
 
   await page.waitForSelector("#system-broadcast-notification-dialog");
   await page.waitForSelector(".pull-right");
-  await page.waitForTimeout(2500); // Adjust the timeout value as needed
+  await sleep(2500); // Adjust the timeout value as needed
   await page.click(
     '#system-broadcast-notification-dialog .modal-footer .clearfix .pull-right button[action="ok"]:first-child'
   );
@@ -122,18 +108,9 @@ async function main() {
 
   //1. get all year values from select dropdown
 
-  //   const yearOptions = await page.evaluate(() => {
-  //     const selectElement = document.querySelector("#yearSelect");
-  //     return Array.from(selectElement.options).map((option) => option.value);
-  //   });
-
-  //   await page.waitForNavigation({ waitUntil: "domcontentloaded" });
-
-  // from below lines of code we have an issue
-
   let vehicleList = [];
 
-  await page.waitForTimeout(3000);
+  await sleep(2000);
 
   try {
     await page.waitForSelector(
@@ -165,6 +142,9 @@ async function main() {
     // }
 
     for (let i = 0; i < yearElements.length; i++) {
+      if (i > 0) {
+        break;
+      }
       const year = await page.evaluate(
         (element) => element.textContent,
         yearElements[yearElements.length - 1]
@@ -185,8 +165,7 @@ async function main() {
       // );
       await dropDownValueSelect.evaluate((a) => a.click());
 
-      await page.waitForTimeout(1000);
-
+      await sleep(100);
       let typeDropDownSpan = await page.$(
         "#year-type-filters > .pull-left:nth-child(2) > span"
       );
@@ -202,6 +181,9 @@ async function main() {
       console.log("eval", year, typeElements.length);
 
       for (let j = 0; j < typeElements.length; j++) {
+        if (j > 0) {
+          break;
+        }
         const type = await page.evaluate(
           (element) => element.textContent,
           typeElements[j]
@@ -222,6 +204,9 @@ async function main() {
         const vehiclesContainer = await page.$$(".vehicle-model");
 
         for (let k = 0; k < vehiclesContainer.length; k++) {
+          if (k > 1) {
+            break;
+          }
           let title,
             image = "";
 
@@ -266,12 +251,12 @@ async function main() {
 
           //in the second and above loops there might appear a popup box with id quoteDlg
 
-          await sleep(2000);
+          await sleep(200);
 
           try {
             const waitResult = await page.waitForSelector("#quoteDlg", {
               visible: true,
-              timeout: 3000,
+              timeout: 2000,
             });
             console.log(
               "%cwaitResult:",
@@ -331,7 +316,7 @@ async function main() {
               trimDescription,
               pl,
               msrp = "";
-            await sleep(3000);
+            await sleep(100);
             try {
               body = await page.evaluate((trimIndex) => {
                 const td = document.querySelector(
@@ -426,14 +411,7 @@ async function main() {
                 .catch((e) => {
                   console.log("waitForSelector error::::::::", e);
                 });
-              //             console.log("%cwaitResult:",'background-color:green;color:white;',{waitResult})
-              //             const highElementRes = await highlightElement(page, "#quoteDlg > div.modal-footer")
-              //             console.log("%chighElementRest:",'background-color:green;color:white;',{highElementRes})
-              //             const quoteDialogBtn = await page.$("#quoteDlg > div.modal-footer > div > div > button:nth-child(2)")
-              //             console.log("%cquoteDialogBtnt:",'background-color:green;color:white;',{quoteDialogBtn})
-              //             if (quoteDialogBtn) {
-              // // If the popup appears, click on its child component
-              // await quoteDialogBtn.evaluate((a) => a.click())
+
               //             }
             } catch (e) {
               console.log(
@@ -477,7 +455,7 @@ async function main() {
 
               console.log("temp key", key);
 
-              sleep(1000);
+              await sleep(100);
 
               await page.waitForSelector(
                 `#panels:nth-child(3) > .panel:nth-child(${(
@@ -491,7 +469,7 @@ async function main() {
               const buildOptionIterator = await page.$$(
                 `.panel:nth-child(${(
                   buildOptionIndex + 1
-                ).toString()}) .well > .body-panel > div > table > tbody`
+                ).toString()}) .well > .body-panel > div > table > tbody > tr`
               );
 
               const buildOptionList = [];
@@ -666,53 +644,7 @@ async function main() {
               { visible: true }
             );
 
-            //           await page.waitForSelector(
-            //             `#model-listView > .vehicle-model:nth-child(${(k+1).toString()})`
-            //           )
-
-            //           await yearDropDownSpan.evaluate((a) => a.click());
-
-            //           await dropDownValueSelect.evaluate((a) => a.click());
-
-            //           await page.waitForTimeout(1000);
-
-            //           await typeDropDownSpan.evaluate((a) => a.click());
-
-            //           await page.waitForSelector("#type-dropdown-list ul li", {
-            //             visible: true,
-            //           });
-
-            //           await typeSelect.evaluate((a) => a.click());
-
-            //           await page.waitForSelector(
-            //             "#model-listView > .vehicle-model:first-child"
-            //           );
-
-            //           await vehicleSelect.evaluate((a)=> a.click());
-
-            //           await sleep(2000);
-
-            //           try {
-            //             const waitResult = await page.waitForSelector("#quoteDlg", {visible:true, timeout: 5000 });
-            //             console.log("%cwaitResult:",'background-color:green;color:white;',{waitResult})
-            //             const highElementRes = await highlightElement(page, "#quoteDlg > div.modal-footer")
-            //             console.log("%chighElementRest:",'background-color:green;color:white;',{highElementRes})
-            //             const quoteDialogBtn = await page.$("#quoteDlg > div.modal-footer > div > div > button:nth-child(2)")
-            //             console.log("%cquoteDialogBtnt:",'background-color:green;color:white;',{quoteDialogBtn})
-            //             if (quoteDialogBtn) {
-            // // If the popup appears, click on its child component
-            // await quoteDialogBtn.evaluate((a) => a.click())
-            //             }
-
-            //             await page.waitForSelector(
-            //               "tbody > tr", {visible: true}
-            //             )
-            //           }
-            //           catch (e) {
-            //             console.log('%cno quote modal','background-color:red;color:white;',e)
-            //           }
-
-            await sleep(2000);
+            await sleep(100);
           }
 
           vehicleList.push({ title, image, trimList });
@@ -743,34 +675,6 @@ async function main() {
     page,
     ".body-panel > .row-fluid:nth-child(2) > #model-listView-container"
   );
-
-  // await page.waitForSelector("#model-listView > .vehicle-model:first-child");
-
-  // const vehiclesContainer = await page.$$(".vehicle-model");
-
-  // let vehicleList = [];
-
-  // for (const vehicle of vehiclesContainer) {
-  //   let title,
-  //     image = "";
-
-  //   try {
-  //     title = await vehicle.$eval("span", (element) =>
-  //       element.textContent.trim()
-  //     );
-  //   } catch (error) {
-  //     console.log("loop error title", error);
-  //   }
-
-  //   try {
-  //     image = await vehicle.$eval("img", (element) => element.src);
-  //   } catch (error) {
-  //     console.log("loop error img", error);
-  //   }
-
-  //   vehicleList.push({ title, image });
-  // }
-  //   console.log("final", vehicleList);
 
   // Store data in MongoDB
 
