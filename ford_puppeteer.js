@@ -403,8 +403,6 @@ async function main() {
               `tr:nth-child(${(trim + 1).toString()}) td:nth-child(1) > input`
             );
 
-            console.log("tb", trimRadioButton);
-
             await trimRadioButton.evaluate((a) => a.click());
 
             try {
@@ -484,19 +482,21 @@ async function main() {
               await page.waitForSelector(
                 `#panels:nth-child(3) > .panel:nth-child(${(
                   buildOptionIndex + 1
-                ).toString()}) .well > .flush > div > table > tbody`,
+                ).toString()}) .well > .body-panel > div > table > tbody`,
                 {
                   visible: 1000,
                 }
               );
 
               const buildOptionIterator = await page.$$(
-                `#panels:nth-child(3) > .panel:nth-child(${(
+                `.panel:nth-child(${(
                   buildOptionIndex + 1
-                ).toString()}) .well > .flush > div > table > tbody`
+                ).toString()}) .well > .body-panel > div > table > tbody`
               );
 
               const buildOptionList = [];
+
+              console.log("true iterator", buildOptionIterator);
 
               for (
                 let buildOption = 0;
@@ -514,14 +514,19 @@ async function main() {
                 await sleep(100);
 
                 try {
-                  nestedCode = await page.evaluate((trimIndex) => {
-                    const td = document.querySelector(
-                      `tbody > tr:nth-child(${(
-                        trimIndex + 1
-                      ).toString()}) > td:nth-child(2)`
-                    );
-                    return td ? td.textContent.trim() : null;
-                  }, buildOption);
+                  nestedCode = await page.evaluate(
+                    ({ buildOption, buildOptionIndex }) => {
+                      const td = document.querySelector(
+                        `.panel:nth-child(${(
+                          buildOptionIndex + 1
+                        ).toString()}) .well > .body-panel > div > table > tbody > tr:nth-child(${(
+                          buildOption + 1
+                        ).toString()}) > td:nth-child(2)`
+                      );
+                      return td ? td.textContent.trim() : null;
+                    },
+                    { buildOption, buildOptionIndex }
+                  );
 
                   console.log("code is", nestedCode);
                 } catch (error) {
@@ -529,14 +534,19 @@ async function main() {
                 }
 
                 try {
-                  nestedDescription = await page.evaluate((trimIndex) => {
-                    const td = document.querySelector(
-                      `tbody > tr:nth-child(${(
-                        trimIndex + 1
-                      ).toString()}) > td:nth-child(3)`
-                    );
-                    return td ? td.textContent.trim() : null;
-                  }, buildOption);
+                  nestedDescription = await page.evaluate(
+                    ({ buildOption, buildOptionIndex }) => {
+                      const td = document.querySelector(
+                        `.panel:nth-child(${(
+                          buildOptionIndex + 1
+                        ).toString()}) .well > .body-panel > div > table > tbody > tr:nth-child(${(
+                          buildOption + 1
+                        ).toString()}) > td:nth-child(3)`
+                      );
+                      return td ? td.textContent.trim() : null;
+                    },
+                    { buildOption, buildOptionIndex }
+                  );
 
                   console.log("desc is", nestedDescription);
                 } catch (error) {
@@ -544,14 +554,19 @@ async function main() {
                 }
 
                 try {
-                  nestedMsrp = await page.evaluate((trimIndex) => {
-                    const td = document.querySelector(
-                      `tbody > tr:nth-child(${(
-                        trimIndex + 1
-                      ).toString()}) > td:nth-child(4)`
-                    );
-                    return td ? td.textContent.trim() : null;
-                  }, buildOption);
+                  nestedMsrp = await page.evaluate(
+                    ({ buildOption, buildOptionIndex }) => {
+                      const td = document.querySelector(
+                        `.panel:nth-child(${(
+                          buildOptionIndex + 1
+                        ).toString()}) .well > .body-panel > div > table > tbody > tr:nth-child(${(
+                          buildOption + 1
+                        ).toString()}) > td:nth-child(4)`
+                      );
+                      return td ? td.textContent.trim() : null;
+                    },
+                    { buildOption, buildOptionIndex }
+                  );
 
                   console.log("msrp is", nestedMsrp);
                 } catch (error) {
@@ -559,14 +574,19 @@ async function main() {
                 }
 
                 try {
-                  nestedInvoice = await page.evaluate((trimIndex) => {
-                    const td = document.querySelector(
-                      `tbody > tr:nth-child(${(
-                        trimIndex + 1
-                      ).toString()}) > td:nth-child(5)`
-                    );
-                    return td ? td.textContent.trim() : null;
-                  }, buildOption);
+                  nestedInvoice = await page.evaluate(
+                    ({ buildOption, buildOptionIndex }) => {
+                      const td = document.querySelector(
+                        `.panel:nth-child(${(
+                          buildOptionIndex + 1
+                        ).toString()}) .well > .body-panel > div > table > tbody > tr:nth-child(${(
+                          buildOption + 1
+                        ).toString()}) > td:nth-child(5)`
+                      );
+                      return td ? td.textContent.trim() : null;
+                    },
+                    { buildOption, buildOptionIndex }
+                  );
 
                   console.log("invoice is", nestedInvoice);
                 } catch (error) {
@@ -574,14 +594,19 @@ async function main() {
                 }
 
                 try {
-                  nestedDealer = await page.evaluate((trimIndex) => {
-                    const td = document.querySelector(
-                      `tbody > tr:nth-child(${(
-                        trimIndex + 1
-                      ).toString()}) > td:nth-child(6)`
-                    );
-                    return td ? td.textContent.trim() : null;
-                  }, buildOption);
+                  nestedDealer = await page.evaluate(
+                    ({ buildOption, buildOptionIndex }) => {
+                      const td = document.querySelector(
+                        `.panel:nth-child(${(
+                          buildOptionIndex + 1
+                        ).toString()}) .well > .body-panel > div > table > tbody > tr:nth-child(${(
+                          buildOption + 1
+                        ).toString()}) > td:nth-child(5)`
+                      );
+                      return td ? td.textContent.trim() : null;
+                    },
+                    { buildOption, buildOptionIndex }
+                  );
 
                   console.log("dealer is", nestedDealer);
                 } catch (error) {
