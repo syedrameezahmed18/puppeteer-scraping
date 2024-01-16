@@ -55,7 +55,7 @@ async function main() {
   const page = await browser.newPage();
   //   await page.setViewport({ width, height });
 
-  page.setDefaultNavigationTimeout(30000);
+  page.setDefaultNavigationTimeout(90000);
 
   await page.goto("https://www.fordctt.dealerconnection.com/build/vehicle.do");
 
@@ -110,7 +110,7 @@ async function main() {
 
   let vehicleList = [];
 
-  await sleep(2000);
+  await sleep(3000);
 
   try {
     await page.waitForSelector(
@@ -142,10 +142,10 @@ async function main() {
     // }
 
     for (let i = 0; i < yearElements.length; i++) {
-      const year = await page.evaluate(
-        (element) => element.textContent,
-        yearElements[yearElements.length - 1]
-      );
+      // const year = await page.evaluate(
+      //   (element) => element.textContent,
+      //   yearElements[yearElements.length - 1]
+      // );
 
       let dropDownValueSelect = await page.$(
         `#year-dropdown-list ul li:nth-child(${(
@@ -162,7 +162,7 @@ async function main() {
       // );
       await dropDownValueSelect.evaluate((a) => a.click());
 
-      await sleep(100);
+      await sleep(1000);
       let typeDropDownSpan = await page.$(
         "#year-type-filters > .pull-left:nth-child(2) > span"
       );
@@ -175,15 +175,15 @@ async function main() {
 
       const typeElements = await page.$$("#type-dropdown-list ul li");
 
-      console.log("eval", year, typeElements.length);
+      console.log("eval", typeElements.length);
 
       for (let j = 0; j < typeElements.length; j++) {
-        const type = await page.evaluate(
-          (element) => element.textContent,
-          typeElements[j]
-        );
+        // const type = await page.evaluate(
+        //   (element) => element.textContent,
+        //   typeElements[j]
+        // );
 
-        console.log("evalnew", year, typeElements.length);
+        console.log("evalnew", j, typeElements.length);
 
         const typeSelect = await page.$(
           `#type-dropdown-list ul li:nth-child(${(j + 1).toString()})`
@@ -191,7 +191,7 @@ async function main() {
 
         await typeSelect.evaluate((a) => a.click());
 
-        await sleep(100);
+        await sleep(1000);
 
         await page.waitForSelector(
           "#model-listView > .vehicle-model:first-child"
@@ -244,7 +244,7 @@ async function main() {
 
           //in the second and above loops there might appear a popup box with id quoteDlg
 
-          await sleep(200);
+          await sleep(2000);
 
           try {
             const waitResult = await page.waitForSelector("#quoteDlg", {
@@ -309,7 +309,7 @@ async function main() {
               trimDescription,
               pl,
               msrp = "";
-            await sleep(100);
+            await sleep(3000);
             try {
               body = await page.evaluate((trimIndex) => {
                 const td = document.querySelector(
@@ -448,7 +448,7 @@ async function main() {
 
               console.log("temp key", key);
 
-              await sleep(100);
+              await sleep(1000);
 
               await page.waitForSelector(
                 `#panels:nth-child(3) > .panel:nth-child(${(
@@ -646,7 +646,13 @@ async function main() {
 
       console.log("main list", vehicleList);
 
-      await yearDropDownSpan.evaluate((a) => a.click());
+      await page.waitForNavigation({ waitUntil: "domcontentloaded" });
+
+      let yearDropDownSpanNew = await page.$(
+        "#year-type-filters > .pull-left:first-child > span"
+      );
+
+      await yearDropDownSpanNew.evaluate((a) => a.click());
 
       await page.waitForSelector("#year-dropdown-list ul li", {
         visible: true,
