@@ -142,9 +142,6 @@ async function main() {
     // }
 
     for (let i = 0; i < yearElements.length; i++) {
-      if (i > 0) {
-        break;
-      }
       const year = await page.evaluate(
         (element) => element.textContent,
         yearElements[yearElements.length - 1]
@@ -181,9 +178,6 @@ async function main() {
       console.log("eval", year, typeElements.length);
 
       for (let j = 0; j < typeElements.length; j++) {
-        if (j > 0) {
-          break;
-        }
         const type = await page.evaluate(
           (element) => element.textContent,
           typeElements[j]
@@ -197,6 +191,8 @@ async function main() {
 
         await typeSelect.evaluate((a) => a.click());
 
+        await sleep(100);
+
         await page.waitForSelector(
           "#model-listView > .vehicle-model:first-child"
         );
@@ -204,9 +200,6 @@ async function main() {
         const vehiclesContainer = await page.$$(".vehicle-model");
 
         for (let k = 0; k < vehiclesContainer.length; k++) {
-          if (k > 1) {
-            break;
-          }
           let title,
             image = "";
 
@@ -223,14 +216,14 @@ async function main() {
             console.log("loop error title", error);
           }
           try {
-            img = await page.evaluate((vecIndex) => {
+            image = await page.evaluate((vecIndex) => {
               const td = document.querySelector(
                 `.vehicle-model:nth-child(${(vecIndex + 1).toString()}) > img`
               );
               return td ? td.src : null;
             }, k);
 
-            console.log("img", img);
+            console.log("img", image);
           } catch (error) {
             console.log("loop error img", error);
           }
@@ -246,7 +239,7 @@ async function main() {
 
             await vehicleSelect.evaluate((a) => a.click());
           } catch (error) {
-            console.log("vehicleSelect err:", { vehicleSelect });
+            console.log("vehicleSelect err:", error);
           }
 
           //in the second and above loops there might appear a popup box with id quoteDlg
